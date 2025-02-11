@@ -1,7 +1,6 @@
 #include <kipr/wombat.h>
 #include <stdio.h>
 
-
 int clamp(int var, int min, int max) {
     if (var > max) {
         return max;
@@ -120,14 +119,15 @@ void load_cam(char* name, int logitech) {
     }
 }
 
-void rotate_till(int channel, int size, int resolution, int direction) {
+int rotate_till(int channel, int size, int resolution, int direction) {
+    cmpc(0);
     direction = clamp(direction, -1, 1);
 	while (1) {
         rectangle o = get_object_bbox(channel, 0);
         if (o.width * o.height > size) {
             int x = o.ulx + o.width/2;
             if (abs((x - resolution/2)) < resolution/10){
-                return;
+                return gmpc(0);
             }
         }
         
