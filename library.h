@@ -77,7 +77,7 @@ void v(int right, int left, int driver, int distance) {
         cmpc(driver);
     int majority = (distance * 4) / 5;
     while (abs(gmpc(driver)) < majority) {
-            mav(0, right);
+        mav(0, right);
         mav(3, left);
     }
     
@@ -85,7 +85,6 @@ void v(int right, int left, int driver, int distance) {
         mav(0, right/2);
         mav(3, left/2);
     }
-    mav(3, -left);
     ao();
 }
 
@@ -177,11 +176,80 @@ int detect_color(int size) {
             }
         }
     }
+    return -1;
 }
 
 void lineup(int port1, int port2) {
-	while (digital(port1) == 0 || digital(port2) == 0) {
+    double startT = seconds();
+	while (digital(port1) == 0 || digital(port2) == 0 ) {
+        if (seconds() - startT > 10) {
+        	break;
+        }
     	mav(0, -500);
         mav(3, -500);
     }
+}
+
+void rtc(int port, int thresh, int greater, int dir) {
+	rotateTillColor(port, thresh, greater, dir);
+}
+
+void rotateTillColor(int port, int thresh, int greater, int dir) {
+	greater = clamp(greater, 0, 1);
+    dir = clamp(dir, 0, 1);
+    
+    while (1) {
+    	if (greater && analog(port) > thresh) {
+            break;
+        } else if (!greater && analog(port) < thresh) {
+        	break;
+        }
+        mav(0, dir ? 500 : -500);
+        mav(3, dir ? -500 : 500);
+    }
+}
+
+void ftc(int port, int thresh, int greater) {
+	forwardTillColor(port, thresh, greater);
+}
+
+void forwardTillColor(int port, int thresh, int greater) {
+	while (1) {
+    	if (greater && analog(port) > thresh) {
+            break;
+        } else if (!greater && analog(port) < thresh) {
+        	break;
+        }
+        mav(0, 1000);
+        mav(3, 1000);
+    } 
+}
+
+void btc(int port, int thresh, int greater) {
+	backwardTillColor(port, thresh, greater);
+}
+
+void backwardTillColor(int port, int thresh, int greater) {
+	while (1) {
+    	if (greater && analog(port) > thresh) {
+            break;
+        } else if (!greater && analog(port) < thresh) {
+        	break;
+        }
+        mav(0, -1000);
+        mav(3, -1000);
+    }
+}
+
+void ftbl(int port, int thresh, int distance) {
+	followTheBlackLine(port, thresh, distance);
+}
+
+void followTheBlackLine(int port, int thresh, int distance) {
+	cmpc(0);
+    while (abs(gmpc(0)) < distance) {
+    	mav(0, analog(port) > thresh ? 1000 : 500);
+        mav(3, analog(port) > thresh ? 500 : 1000);
+    }
+    ao();
 }
