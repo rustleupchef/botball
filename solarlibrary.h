@@ -44,9 +44,20 @@ void setup()
 {
     wait_for_light(prime.waitForLightSensor);
     shut_down_in(118);
+    
+    lmd();
 }
 
-void logPrime()
+void log(char* message) {
+    printf("%s at %lf\n", message, seconds() - prime.startTime);
+}
+
+void lmd()
+{
+    logMetaData();
+}
+
+void logMetaData()
 {
     for (int i = 0; i < 20; i++)
     {
