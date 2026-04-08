@@ -10,7 +10,8 @@ struct Robot
     int grey;
     int buttonPort1, buttonPort2;
     int waitForLightSensor, blackLightSensor;
-    double startTime;
+    int side;
+    double startTime, timeout;
 } prime;
 
 void init()
@@ -36,6 +37,7 @@ void init()
     prime.side = 1;
 
     prime.startTime = seconds();
+    prime.timeout = 10;
 }
 
 void setup()
@@ -156,8 +158,8 @@ void turnRPivot(int degree)
 void v(int right, int left, int driver, int distance)
 {
     driver = clamp(driver, 0, 3);
-    right = clamp(right, -1000, 1000);
-    left = clamp(left, -1000, 1000);
+    right = clamp(right, -1500, 1500);
+    left = clamp(left, -1500, 1500);
 
     cmpc(driver);
     int majority = (distance * 4) / 5;
@@ -216,17 +218,24 @@ void load_cam(char *name, int logitech)
 
 int rotateTill(int channel, int size, int resolution, int direction)
 {
-    cmpc(0);
+    double startT = seconds();
+
+    cmpc(prime.rightWheel);
     direction = clamp(direction, -1, 1);
     while (1)
     {
+        if (seconds() - startT > prime.timeout)
+        {
+            break;
+        }
+
         rectangle o = get_object_bbox(channel, 0);
         if (o.width * o.height > size)
         {
             int x = o.ulx + o.width / 2;
             if (abs((x - resolution / 2)) < resolution / 10)
             {
-                return gmpc(0);
+                return gmpc(prime.rightWheel);
             }
         }
 
@@ -312,8 +321,13 @@ int detect_color(int size)
 
 void lineup()
 {
+    double startT = seconds();
     while (digital(prime.buttonPort1) == 0 || digital(prime.buttonPort2) == 0)
     {
+        if (seconds() - startT > prime.timeout)
+        {
+            break;
+        }
         mav(prime.rightWheel, digital(prime.buttonPort1) == 0 ? -prime.leftSpeed / 2 : 0);
         mav(prime.leftWheel, digital(prime.buttonPort2) == 0 ? -prime.rightSpeed / 2 : 0);
     }
@@ -378,8 +392,14 @@ void mtc(int right, int left, int greater)
 
 void moveTillColor(int right, int left, int greater)
 {
+    double startT = seconds();
     while (1)
     {
+        if (seconds() - startT > prime.timeout)
+        {
+            break;
+        }
+
         if (greater && analog(prime.blackLightSensor) > prime.grey)
         {
             break;
@@ -401,6 +421,8 @@ void ftbl(int distance)
 
 void followTheBlackLine(int distance)
 {
+    double startT = seconds();
+
     cmpc(prime.rightWheel);
     while (abs(gmpc(prime.rightWheel)) < distance)
     {
