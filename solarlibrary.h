@@ -1,9 +1,10 @@
 #include <kipr/wombat.h>
 #include <stdio.h>
 
-struct Robot {
+struct Robot
+{
     int leftWheel, rightWheel;
-	int leftSpeed, rightSpeed;
+    int leftSpeed, rightSpeed;
     int armPort, clawPort;
     int servoSpeed;
     int grey;
@@ -12,217 +13,280 @@ struct Robot {
     double startTime;
 } prime;
 
-void setup() {
-	prime.leftWheel = 3;
+void init()
+{
+    prime.leftWheel = 3;
     prime.rightWheel = 0;
-    
+
     prime.leftSpeed = 1000;
     prime.rightSpeed = 1000;
-    
+
     prime.armPort = 0;
     prime.clawPort = 3;
-    
+
     prime.servoSpeed = 5;
-    
+
     prime.grey = 3000;
-    
+
     prime.buttonPort1 = 0;
     prime.buttonPort2 = 1;
-    
+
     prime.waitForLightSensor = 0;
     prime.blackLightSensor = 1;
-    
+    prime.side = 1;
+
     prime.startTime = seconds();
 }
 
-void logPrime() {
-	for (int i = 0; i < 20; i++) {
-    	printf("-");
+void setup()
+{
+    wait_for_light(prime.waitForLightSensor);
+    shut_down_in(118);
+}
+
+void logPrime()
+{
+    for (int i = 0; i < 20; i++)
+    {
+        printf("-");
     }
     printf("\n");
-    
+
     printf("leftWheel=%d\n", prime.leftWheel);
     printf("rightWheel=%d\n", prime.rightWheel);
-    
+
     printf("leftSpeed=%d\n", prime.leftSpeed);
     printf("rightSpeed=%d\n", prime.rightSpeed);
-    
+
     printf("armPort=%d\n", prime.armPort);
     printf("clawPort=%d\n", prime.clawPort);
-    
+
     printf("grey=%d\n", prime.grey);
-    
+
     printf("buttonPort1=%d\n", prime.buttonPort1);
     printf("buttonPort2=%d\n", prime.buttonPort2);
-    
+
     printf("waitForLightSensor=%d\n", prime.waitForLightSensor);
     printf("blackLightSensor=%d\n", prime.blackLightSensor);
-    
-    for (int i = 0; i < 20; i++) {
-    	printf("-");
+    printf("side=%d\n", prime.side);
+
+    printf("startTime=%lf\n", prime.startTime);
+
+    for (int i = 0; i < 20; i++)
+    {
+        printf("-");
     }
     printf("\n");
 }
 
-int clamp(int var, int min, int max) {
-    if (var > max) {
+int clamp(int var, int min, int max)
+{
+    if (var > max)
+    {
         return max;
     }
-    
-    if (var < min) {
+
+    if (var < min)
+    {
         return min;
     }
     return var;
 }
 
-
-void f(int distance) {
-        forward(distance);
+void f(int distance)
+{
+    forward(distance);
 }
 
-
-void forward(int distance) {
-        v(prime.rightSpeed, prime.leftSpeed, 0, distance);
+void forward(int distance)
+{
+    v(prime.rightSpeed, prime.leftSpeed, 0, distance);
 }
 
-
-void b(int distance) {
-        backward(distance);
+void b(int distance)
+{
+    backward(distance);
 }
 
-
-void backward(int distance) {
-        v(-prime.rightSpeed, -prime.leftSpeed, 0, distance);
+void backward(int distance)
+{
+    v(-prime.rightSpeed, -prime.leftSpeed, 0, distance);
 }
 
-
-void l(int degree) {
-        turnL(degree);
+void l(int degree)
+{
+    turnL(degree);
 }
 
-
-void turnL(int degree) {
-        v(prime.rightSpeed, -prime.leftSpeed, 0, degree * 12);
+void turnL(int degree)
+{
+    v(prime.rightSpeed, -prime.leftSpeed, 0, degree * 12);
 }
 
-
-void r(int degree) {
-        turnR(degree);
+void r(int degree)
+{
+    turnR(degree);
 }
 
-
-void turnR(int degree) {
-        v(-prime.rightSpeed, prime.leftSpeed, 3, degree * 12);
+void turnR(int degree)
+{
+    v(-prime.rightSpeed, prime.leftSpeed, 3, degree * 12);
 }
 
-
-void lP(int degree) {
-	turnLPivot(degree);
+void lP(int degree)
+{
+    turnLPivot(degree);
 }
 
-void turnLPivot(int degree) {
-	v(prime.rightSpeed, 0, 0, degree * 24);
+void turnLPivot(int degree)
+{
+    v(prime.rightSpeed, 0, 0, degree * 24);
 }
 
-void rP(int degree) {
-	turnRPivot(degree);
+void rP(int degree)
+{
+    turnRPivot(degree);
 }
 
-void turnRPivot(int degree) {
-	v(0, prime.leftSpeed, 3, degree * 24);
+void turnRPivot(int degree)
+{
+    v(0, prime.leftSpeed, 3, degree * 24);
 }
 
-void v(int right, int left, int driver, int distance) {
+void v(int right, int left, int driver, int distance)
+{
     driver = clamp(driver, 0, 3);
     right = clamp(right, -1000, 1000);
     left = clamp(left, -1000, 1000);
-    
-        cmpc(driver);
+
+    cmpc(driver);
     int majority = (distance * 4) / 5;
-    while (abs(gmpc(driver)) < majority) {
-        mav(0, right);
-        mav(3, left);
+    while (abs(gmpc(driver)) < majority)
+    {
+        mav(prime.rightWheel, right);
+        mav(prime.leftWheel, left);
     }
-    
-    while (abs(gmpc(driver)) < distance) {
-        mav(0, right/2);
-        mav(3, left/2);
+
+    while (abs(gmpc(driver)) < distance)
+    {
+        mav(prime.rightWheel, right / 2);
+        mav(prime.leftWheel, left / 2);
     }
     ao();
 }
 
-void p(double time) {
-	pause(time);
+void p(double time)
+{
+    pause(time);
 }
 
-void pause(double time) {
-	double sTime = seconds();
-    while (seconds() - sTime < time) {
-    	ao();
+void pause(double time)
+{
+    double sTime = seconds();
+    while (seconds() - sTime < time)
+    {
+        ao();
     }
 }
 
-void lc(char* name, int logitech) {
-	load_cam(name, logitech);
+void lc(char *name, int logitech)
+{
+    load_cam(name, logitech);
 }
 
-void load_cam(char* name, int logitech) {
+void load_cam(char *name, int logitech)
+{
     logitech = clamp(logitech, 0, 1);
-	camera_load_config(name);
-    if (logitech) {
-    	camera_open_black();
-    } else {
-    	camera_open();
+    camera_load_config(name);
+    if (logitech)
+    {
+        camera_open_black();
     }
-    
-    for (int i = 0; i < 10; i++) {
-    	camera_update();
+    else
+    {
+        camera_open();
+    }
+
+    for (int i = 0; i < 10; i++)
+    {
+        camera_update();
         p(0.01);
     }
 }
 
-int rotate_till(int channel, int size, int resolution, int direction) {
+int rotateTill(int channel, int size, int resolution, int direction)
+{
     cmpc(0);
     direction = clamp(direction, -1, 1);
-	while (1) {
+    while (1)
+    {
         rectangle o = get_object_bbox(channel, 0);
-        if (o.width * o.height > size) {
-            int x = o.ulx + o.width/2;
-            if (abs((x - resolution/2)) < resolution/10){
+        if (o.width * o.height > size)
+        {
+            int x = o.ulx + o.width / 2;
+            if (abs((x - resolution / 2)) < resolution / 10)
+            {
                 return gmpc(0);
             }
         }
-        
+
         double sTime = seconds();
-        while (seconds() - sTime <= 0.2) {
-        	mav(prime.rightWheel, -prime.rightSpeed/2 * direction);
-            mav(prime.leftWheel, prime.leftSpeed/2 * direction);
+        while (seconds() - sTime <= 0.2)
+        {
+            mav(prime.rightWheel, -prime.rightSpeed / 2 * direction);
+            mav(prime.leftWheel, prime.leftSpeed / 2 * direction);
         }
         p(0.01);
         camera_update();
     }
 }
 
-void ss(int port, int position, int speed) {
-	slow_servo(port, position, speed);
+void ssc(int position)
+{
+    slowServoClaw(position);
 }
 
-void slow_servo(int port, int position, int speed) {
-	if (get_servo_position(port)  == position) {
-    	return;
+void slowServoClaw(int position)
+{
+    slowServo(prime.clawPort, position);
+}
+
+void ssa(int position)
+{
+    slowServoArm(position);
+}
+
+void slowServoArm(int position)
+{
+    slowServo(prime.armPort, position);
+}
+
+void ss(int port, int position)
+{
+    slowServo(port, position);
+}
+
+void slowServo(int port, int position)
+{
+    if (get_servo_position(port) == position)
+    {
+        return;
     }
-    
+
     int starting = get_servo_position(port);
     int counter = 0;
-    
-    while((starting + counter)/speed != position/speed) {
-    	if (position - starting > 0) {
-    		counter  += speed;
-    	}
-        if (position - starting < 0) {
-        	counter -= speed;
+
+    while ((starting + counter) / prime.servoSpeed != position / prime.servoSpeed)
+    {
+        if (position - starting > 0)
+        {
+            counter += prime.servoSpeed;
         }
-        
+        if (position - starting < 0)
+        {
+            counter -= prime.servoSpeed;
+        }
+
         set_servo_position(port, starting + counter);
         msleep(10);
     }
@@ -230,85 +294,126 @@ void slow_servo(int port, int position, int speed) {
     msleep(100);
 }
 
-int detect_color(int size) {
-	for (int i = 0; i < get_channel_count(); i++) {
-    	for (int j = 0; j < get_object_count(i); j++) {
-        	rectangle o = get_object_bbox(i, j);
-            if (o.width * o.height > size) {
-            	return i;
+int detect_color(int size)
+{
+    for (int i = 0; i < get_channel_count(); i++)
+    {
+        for (int j = 0; j < get_object_count(i); j++)
+        {
+            rectangle o = get_object_bbox(i, j);
+            if (o.width * o.height > size)
+            {
+                return i;
             }
         }
     }
     return -1;
 }
 
-void lineup() {
-	while (digital(prime.buttonPort1) == 0 || digital(prime.buttonPort2) == 0 ) {
-    	mav(prime.rightWheel,  digital(prime.buttonPort1) == 0 ? -prime.leftSpeed/2 : 0);
-        mav(prime.leftWheel, digital(prime.buttonPort2) == 0 ? -prime.rightSpeed/2 : 0);
+void lineup()
+{
+    while (digital(prime.buttonPort1) == 0 || digital(prime.buttonPort2) == 0)
+    {
+        mav(prime.rightWheel, digital(prime.buttonPort1) == 0 ? -prime.leftSpeed / 2 : 0);
+        mav(prime.leftWheel, digital(prime.buttonPort2) == 0 ? -prime.rightSpeed / 2 : 0);
     }
 }
 
-void rtc(int port, int thresh, int greater, int dir) {
-	rotateTillColor(port, thresh, greater, dir);
+void rrtc(int greater)
+{
+    rotateRightTillColor(greater);
 }
 
-void rotateTillColor(int port, int thresh, int greater, int dir) {
-	greater = clamp(greater, 0, 1);
-    dir = clamp(dir, 0, 1);
-    
-    while (1) {
-    	if (greater && analog(port) > thresh) {
+void rotateRightTillColor(int greater)
+{
+    rotateTillColor(greater, 0);
+}
+
+void rltc(int greater)
+{
+    rotateLeftTillColor(greater);
+}
+
+void rotateLeftTillColor(int greater)
+{
+    rotateTillColor(greater, 1);
+}
+
+void rtc(int greater, int dir)
+{
+    rotateTillColor(greater, dir);
+}
+
+void rotateTillColor(int greater, int dir)
+{
+    int right = dir ? prime.rightSpeed / 2 : -prime.rightSpeed / 2;
+    int left = dir ? -prime.leftSpeed / 2 : prime.leftSpeed / 2;
+    mtc(right, left, greater);
+}
+
+void ftc(int greater)
+{
+    forwardTillColor(greater);
+}
+
+void forwardTillColor(int greater)
+{
+    mtc(prime.rightSpeed, prime.leftSpeed, greater);
+}
+
+void btc(int greater)
+{
+    backwardTillColor(greater);
+}
+
+void backwardTillColor(int greater)
+{
+    mtc(-prime.rightSpeed, -prime.leftSpeed, greater);
+}
+
+void mtc(int right, int left, int greater)
+{
+    moveTillColor(right, left, greater);
+}
+
+void moveTillColor(int right, int left, int greater)
+{
+    while (1)
+    {
+        if (greater && analog(prime.blackLightSensor) > prime.grey)
+        {
             break;
-        } else if (!greater && analog(port) < thresh) {
-        	break;
         }
-        mav(prime.rightWheel, dir ? prime.rightSpeed/2 : -prime.rightSpeed/2);
-        mav(prime.leftWheel, dir ? -prime.leftSpeed/2 : prime.leftSpeed/2);
+        else if (!greater && analog(prime.blackLightSensor) < prime.grey)
+        {
+            break;
+        }
+        mav(prime.rightWheel, right);
+        mav(prime.leftWheel, left);
     }
+    ao();
 }
 
-void ftc(int port, int thresh, int greater) {
-	forwardTillColor(port, thresh, greater);
+void ftbl(int distance)
+{
+    followTheBlackLine(distance);
 }
 
-void forwardTillColor(int port, int thresh, int greater) {
-	while (1) {
-    	if (greater && analog(port) > thresh) {
-            break;
-        } else if (!greater && analog(port) < thresh) {
-        	break;
+void followTheBlackLine(int distance)
+{
+    cmpc(prime.rightWheel);
+    while (abs(gmpc(prime.rightWheel)) < distance)
+    {
+        if (prime.side)
+        {
+            mav(prime.rightWheel, analog(prime.blackLightSensor) > prime.grey ? prime.rightSpeed : prime.leftSpeed / 2);
+            mav(prime.leftWheel, analog(prime.blackLightSensor) > prime.grey ? prime.leftSpeed / 2 : prime.rightSpeed);
         }
-        mav(prime.rightWheel, prime.rightSpeed);
-        mav(prime.leftWheel, prime.leftSpeed);
-    } 
-}
-
-void btc(int port, int thresh, int greater) {
-	backwardTillColor(port, thresh, greater);
-}
-
-void backwardTillColor(int port, int thresh, int greater) {
-	while (1) {
-    	if (greater && analog(port) > thresh) {
-            break;
-        } else if (!greater && analog(port) < thresh) {
-        	break;
+        else
+        {
+            mav(prime.rightWheel, analog(prime.blackLightSensor) > prime.grey ? prime.leftSpeed / 2 : prime.rightSpeed);
+            mav(prime.leftWheel, analog(prime.blackLightSensor) > prime.grey ? prime.rightSpeed : prime.leftSpeed / 2);
         }
-        mav(prime.rightWheel, -prime.rightSpeed);
-        mav(prime.leftWheel, -prime.leftSpeed);
-    }
-}
-
-void ftbl(int port, int thresh, int distance) {
-	followTheBlackLine(port, thresh, distance);
-}
-
-void followTheBlackLine(int port, int thresh, int distance) {
-	cmpc(prime.rightWheel);
-    while (abs(gmpc(prime.rightWheel)) < distance) {
-    	mav(prime.rightWheel, analog(port) > thresh ? prime.rightSpeed : prime.leftSpeed/2);
-        mav(prime.leftWheel, analog(port) > thresh ? prime.leftSpeed/2 : prime.rightSpeed);
     }
     ao();
 }
