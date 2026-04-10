@@ -12,6 +12,8 @@ struct Robot
     int waitForLightSensor, blackLightSensor;
     int side;
     double startTime, timeout;
+    int verbose;
+    int competition;
 } prime;
 
 void init()
@@ -38,17 +40,26 @@ void init()
 
     prime.startTime = seconds();
     prime.timeout = 10;
+
+    prime.verbose = 1;
+    prime.competition = 0;
 }
 
 void setup()
 {
-    wait_for_light(prime.waitForLightSensor);
-    shut_down_in(118);
-    
+    if (prime.competition)
+    {
+        wait_for_light(prime.waitForLightSensor);
+        shut_down_in(118);
+    }
+
     lmd();
 }
 
-void log(char* message) {
+void logPoint(char *message)
+{
+    if (!prime.verbose)
+        return;
     printf("%s at %lf\n", message, seconds() - prime.startTime);
 }
 
@@ -59,6 +70,9 @@ void lmd()
 
 void logMetaData()
 {
+    if (!prime.verbose)
+        return;
+
     for (int i = 0; i < 20; i++)
     {
         printf("-");
